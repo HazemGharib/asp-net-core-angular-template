@@ -1,0 +1,11 @@
+<div id="divMessages" class="messages">
+  <div *ngFor="let message of messages">
+    <div class="message-author">{{message.username}}</div>
+    <div>{{message.body}}</div>
+  </div>
+</div>
+<div class="input-zone">
+  <label id="lblMessage" for="tbMessage">Message:</label>
+  <input id="tbMessage" [(ngModel)]='tbMessage' class="input-zone-input" type="text" />
+  <button id="btnSend" (click)="send()">Send</button>
+</div>
