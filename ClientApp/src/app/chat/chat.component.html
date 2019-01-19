@@ -1,11 +1,15 @@
-<div id="divMessages" class="messages">
+<div #chatMessages (DOMSubtreeModified)="scrollMessages()" class="messages">
   <div *ngFor="let message of messages">
     <div class="message-author">{{message.username}}</div>
     <div>{{message.body}}</div>
   </div>
 </div>
-<div class="input-zone">
+<div class="input-zone" [hidden]="!isLoggedIn">
   <label id="lblMessage" for="tbMessage">Message:</label>
-  <input id="tbMessage" [(ngModel)]='tbMessage' class="input-zone-input" type="text" />
+  <input #message (keydown)="onMessageKeydown($event)" class="input-zone-input" type="text" />
   <button id="btnSend" (click)="send()">Send</button>
+</div>
+<div class="input-zone" [hidden]="isLoggedIn">
+  <label id="lblUsername" for="tbUsername">Username:</label>
+  <input [(ngModel)]="username" (keydown)="onLogin($event)" class="input-zone-input" type="text" />
 </div>

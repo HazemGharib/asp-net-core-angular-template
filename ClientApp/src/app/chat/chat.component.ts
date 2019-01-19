@@ -1,9 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import * as signalR from '@aspnet/signalr';
-
-// const divMessages: HTMLDivElement = document.querySelector('#divMessages');
-// const tbMessage: HTMLInputElement = document.querySelector('#tbMessage');
-// const btnSend: HTMLButtonElement = document.querySelector('#btnSend');
 
 @Component({
   selector: 'app-chat',
@@ -13,8 +9,11 @@ import * as signalR from '@aspnet/signalr';
 export class ChatComponent implements OnInit {
 
   _hubConnection: signalR.HubConnection;
-  tbMessage = '';
+  username = '';
   messages = [];
+  isLoggedIn = false;
+  @ViewChild('chatMessages') chatMessages: ElementRef;
+  @ViewChild('message') message: ElementRef;
 
   constructor() { }
 
@@ -22,17 +21,51 @@ export class ChatComponent implements OnInit {
     this._hubConnection = new signalR.HubConnectionBuilder().withUrl('/hubs/chat').build();
 
     this._hubConnection.on('messageReceived', (username: string, message: string) => {
-
       this.messages.push({ username: username, body: message });
     });
 
-    this._hubConnection.start().then(() => console.log('Hub connected!')).catch(err => document.write(err));
+  }
+
+  scrollMessages() {
+    this.chatMessages.nativeElement.scrollTop = Number.MAX_SAFE_INTEGER;
+  }
+
+  login() {
+    if (this.username !== '') {
+      this._hubConnection.start()
+        .then(() => {
+          this._hubConnection.invoke('newMessage', `${this.username} has just connected`, '');
+          this.isLoggedIn = true;
+        })
+        .catch(err => {
+          document.write(err);
+          this.isLoggedIn = false;
+          alert(`Cannot connect now try again later`);
+        });
+      return;
+    }
+    alert(`Username can't be empty`);
+  }
+
+  onLogin(event) {
+    if (event.keyCode === 13) {
+      this.login();
+    }
   }
 
   send() {
-    const username = new Date().getTime();
-    this._hubConnection.send('newMessage', username, this.tbMessage)
-      .then(() => this.tbMessage = '');
+    this._hubConnection
+      .invoke('newMessage', this.username, this.message.nativeElement.value)
+      .then(() => {
+        this.message.nativeElement.value = '';
+        this.message.nativeElement.focus();
+      });
+  }
+
+  onMessageKeydown(event) {
+    if (event.keyCode === 13) {
+      this.send();
+    }
   }
 }
 
